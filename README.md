@@ -1,45 +1,186 @@
-# Crypto-Currency-Insights-Real-Time-Data-Pipeline
+# 📊 Crypto-Currency Insights — Real-Time Data Pipeline
 
-🚀 Project Purpose & Expected Outputs
+A streaming-native, production-ready data pipeline delivering **real-time trading intelligence** from live crypto market data.
 
-🎯 Purpose
-This project is the culmination of everything I learned during my Data Engineering Bootcamp. My goal was to:
+---
 
-Design, develop, and deploy a fully operational, cloud-based data application using production-grade tools.
+## 🚀 Project Purpose & Vision
 
-Implement end-to-end data engineering concepts—from ingestion to transformation to analytics—in a real-time environment.
+### 🎯 Goal
 
-Apply advanced data modeling techniques using Delta Live Tables (DLT) to manage streaming data.
+To build a **cloud-based, real-time crypto analytics platform** using the full spectrum of data engineering tools and practices learned in a bootcamp.
 
-Provide actionable insights for crypto traders by analyzing live order book and ticker data from Coinbase.
+- ✅ Real-time ingestion, transformation, and dashboarding  
+- ✅ Streaming-native pipeline via **Delta Live Tables (DLT)**  
+- ✅ Built on **Databricks**, using **Coinbase API**  
+- ✅ Smart KPIs like VWAP, Buy/Sell Intent, and Whale Detection  
 
-I wanted to build something that wasn’t just academic—but felt like a real product someone in the industry would actually use.
+### 📈 What This Project Delivers
 
-📈 Expected Outputs
-The key outputs from this project include:
+- 📊 Real-time KPIs from live Coinbase API for top 5 cryptocurrencies  
+- 💡 Actionable trading signals:  
+  - Buy vs. Sell Intent  
+  - Whale Wall Detection  
+  - VWAP by side  
+  - Order Book Depth Analytics  
+- 📺 Dashboards refreshing every 30 seconds for real-time monitoring  
+- 🛠️ End-to-end pipeline with quality checks and modular DLT layers  
 
-✅ Real-time KPIs computed from live Coinbase API data (top 5 cryptocurrencies).
+---
 
-🧠 Intelligent trading signals such as:
+## 🧾 Dataset & API
 
-Buy vs Sell intent
+### 📡 **Source:** Coinbase Public REST API
 
-Whale wall detection
+- `/products/{product_id}/book?level=2`: 100 top bids/asks  
+- `/products/{product_id}/ticker`: Latest price and volume  
 
-VWAP (Volume Weighted Average Price)
+**Why this API?**
 
-Order book depth analysis
+- No authentication needed  
+- Rich financial signal content  
+- Near real-time update rates  
+- Great for simulating real-world trading environments  
 
-📊 Auto-refreshing dashboards built on Databricks to monitor trading behavior over 30-second and 24-hour cadences.
+---
 
-🔍 A production-ready data pipeline using:
+## 🧰 Technology Stack
 
-Apache Spark
+| Layer          | Technology                 | Why It Was Chosen                                                             |
+| -------------- | -------------------------- | ----------------------------------------------------------------------------- |
+| Ingestion      | Python + REST API          | Lightweight, scalable method for frequent data pulls                          |
+| Landing Zone   | Parquet on DBFS            | Efficient columnar format for high-speed reads                                |
+| Streaming      | Databricks + DLT           | Native support for Delta Lake, orchestration, and scale                       |
+| Transformation | Delta Live Tables          | Modular design (Bronze → Silver → Gold), schema enforcement, & quality checks |
+| Data Quality   | DLT Expectations           | Declarative checks for filtering & anomaly detection                          |
+| Storage        | Delta Lake + Unity Catalog | Schema evolution & time travel                                                |
+| Orchestration  | Databricks Jobs            | Auto-scheduling with monitoring and retry logic                               |
+| Visualization  | Databricks SQL Dashboards  | Real-time dashboards with interactive UI                                      |
 
-Delta Lake + DLT
+---
 
-Parquet-based raw storage
+## ✅ Project Steps
 
-Continuous ingestion with schema enforcement
+### 1. Define Scope & KPIs
 
-🛡️ Built-in data quality checks for schema consistency, value sanity, and dataset completeness.
+- Selected 5 coins: **BTC, ETH, ADA, SOL, DOGE**  
+- Finalized KPIs: Buy/Sell Intent, VWAP, Whale Walls, etc.
+
+### 2. Ingestion Layer
+
+- Used `ThreadPoolExecutor` for parallel API calls  
+- Saved raw JSON data as **Parquet** files every 10 seconds  
+
+### 3. Bronze → Silver → Gold
+
+- **Bronze**: Raw ingestion  
+- **Silver**: Schema enforcement, enrichment (notional value), quality checks  
+- **Gold**: Aggregations every 30s and 1d for dashboards  
+
+### 4. Real-Time Dashboards
+
+- Created per-symbol views with VWAP, Whale Walls, etc.  
+- Dashboards auto-refresh every 30 seconds  
+
+---
+
+## ⚠️ Challenges & Solutions
+
+| Challenge                        | Solution                                                          |
+| -------------------------------- | ----------------------------------------------------------------- |
+| Missed asks in initial ingest    | Appended both sides of order book with proper labeling            |
+| File explosion from small writes | Used partitioning + `coalesce(1)` to optimize writes              |
+| Schema drift from API changes    | Leveraged `_rescued_data` for error handling and schema evolution |
+| Real-time aggregations lagging   | Designed DLT logic to always reprocess with checkpoints           |
+| Cross-coin dashboard clutter     | Shifted to **symbol-specific dashboards**                         |
+
+---
+
+## 🧱 Architecture Diagram
+
+```
++----------------------+
+|  Coinbase API (REST) |
++----------+-----------+
+           |
+     (Every 10s)
+           |
+           v
++------------------------+
+| Raw Ingestion Notebook |
+| - Save as Parquet      |
++-----------+------------+
+            |
+            v
++---------------------------+
+| Bronze Table (DLT)        |
++---------------------------+
+            |
+            v
++----------------------------+
+| Silver Table (DLT)        |
+| - Schema Checks           |
+| - Enrichment              |
++----------------------------+
+            |
+            v
++-----------------------------------+
+| Gold Tables (DLT)                  |
+| - 30s & Daily Aggregates           |
++-----------------------------------+
+            |
+            v
++------------------------------+
+| Dashboards (Databricks SQL)  |
++------------------------------+
+```
+
+---
+
+## 🔍 Data Quality Checks
+
+### ✅ Enforced via `@dlt.expect_or_drop`
+
+- **Price**: Not null, > 0  
+- **Size**: Not null, > 0  
+- **Side**: Must be in `['buy', 'sell']`  
+- **Symbol**: Must be in the set: BTC-USD, ETH-USD, ADA-USD, SOL-USD, DOGE-USD  
+
+### ⚠️ Monitored via `@dlt.expect`
+
+- **Price Ranges** (e.g., BTC: 10K–1M, DOGE: 0.01–1.5)  
+- Helps detect anomalies without dropping rows  
+
+---
+
+## 🔢 Estimated Data Volume
+
+| Layer          | Source             | Frequency        | Records/Fetch              | Est. Daily Records |
+| -------------- | ------------------ | ---------------- | -------------------------- | ------------------ |
+| **Bronze**     | Order Book Level 2 | Every 10 seconds | ~100–200 bids + asks/coin  | ~8.6M+             |
+| **Bronze**     | Ticker             | Every 10 seconds | 1 per coin                 | ~43,200            |
+| **Silver**     | Cleaned Streams    | Streaming        | Same as Bronze             | ~8.6M+             |
+| **Gold (30s)** | Aggregated KPIs    | Every 30 seconds | ~5 rows per window         | ~14,400            |
+| **Gold (1d)**  | Aggregated KPIs    | Daily            | 1 row per coin             | 5                  |
+
+> ⚙️ Weekly total rows processed: **60M+**
+
+---
+
+## 📈 Value Delivered
+
+| **Value Area**                    | **What This Project Enables**                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Real-Time Market Sentiment**    | Instantly detect **buy vs. sell intent** via order book imbalance metrics.                                 |
+| **Whale Order Detection**         | Identify and monitor **large, concentrated trades**—crucial for anticipating breakouts or dumps.           |
+| **VWAP Analytics**                | Offers **Volume Weighted Average Price** by side to guide smarter order placements.                        |
+| **Support & Resistance Insights** | Monitor shifts in order book depth to uncover **emerging support and resistance levels**.                  |
+| **Symbol-Specific Dashboards**    | Track **coin-specific KPIs** in near real-time with dashboards refreshing every 30 seconds.                |
+| **Scalability & Extensibility**   | Easily onboard new symbols, KPIs, and extend to broader crypto coverage.                                   |
+| **Streaming Data Readiness**      | Built on a **streaming-native architecture**, handling millions of rows/day with real-time transformation. |
+
+---
+
+Made with ❤️ by a Data Engineering enthusiast who wanted to build something real.
+
+> ⭐ Star this repo if you found it helpful or inspiring!
