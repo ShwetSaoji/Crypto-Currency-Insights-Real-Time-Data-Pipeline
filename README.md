@@ -181,6 +181,22 @@ To build a **cloud-based, real-time crypto analytics platform** using the full s
 
 ---
 
-Made with ❤️ by a Data Engineering enthusiast who wanted to build something real.
+## Live Dashboard Screenshots:
 
-> ⭐ Star this repo if you found it helpful or inspiring!
+![image](https://github.com/user-attachments/assets/3e9a12ba-e725-4559-a77a-fff8a349dd08)
+
+![image](https://github.com/user-attachments/assets/73d6a5e8-1b16-4e37-949f-1d2c882aa906)
+
+![Screenshot 2025-07-06 at 9 48 41 AM](https://github.com/user-attachments/assets/fbe6c484-f54b-4469-bf53-786aab93a565)
+
+![image](https://github.com/user-attachments/assets/8444dd8e-0a13-4ba6-98d4-09d1cb4c0eaa)
+
+![Screenshot 2025-07-06 at 9 49 53 AM](https://github.com/user-attachments/assets/b74d6977-6d6d-49f4-9a55-6a74bef32c97)
+
+
+
+
+
+
+
+
